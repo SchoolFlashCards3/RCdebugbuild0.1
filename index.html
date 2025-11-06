@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Raycast Engine</title>
+    <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    h1 {
+      font-size: 48px;
+      margin-bottom: 60px;
+      color: #222;
+    }
+
+    .menu-button {
+      position: relative;
+      font-size: 28px;
+      padding: 20px 40px;
+      border: none;
+      background: #eee;
+      color: #222;
+      cursor: pointer;
+      width: 300px;
+      text-align: center;
+      margin: 10px 0;
+      transition: background 0.2s;
+    }
+
+    .menu-button.hovered {
+      background: #ddd;
+    }
+
+    .arrow {
+      position: absolute;
+      right: -40px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 28px;
+      visibility: hidden;
+    }
+
+    .menu-button.hovered .arrow {
+      visibility: visible;
+    }
+
+    /* fade-out animation overlay */
+    #fade-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.8s ease;
+      z-index: 100;
+    }
+
+    #fade-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+  </style>
+  </head>
+  <body>
+    <h1>Raycast Engine</h1>
+
+    <button class="menu-button hovered" onclick="startGame()">
+      Start Game
+      <span class="arrow"><</span>
+    </button>
+
+    <button class="menu-button" onclick="testButton()">
+      Notes/Info
+      <span class="arrow"><</span>
+    </button>
+
+    <button class="menu-button" onclick="showInstructions()">
+      Instructions
+      <span class="arrow"><</span>
+    </button>
+
+    <div id="fade-overlay"></div>
+
+    <script>
+    const buttons = Array.from(document.querySelectorAll('.menu-button'));
+    let selectedIndex = 0;
+    const overlay = document.getElementById('fade-overlay');
+
+    function updateHover() {
+      buttons.forEach((b, i) => b.classList.toggle('hovered', i === selectedIndex));
+    }
+
+    function fadeAndRedirect(url) {
+      overlay.classList.add('active');
+      setTimeout(() => {
+        window.location.href = url;
+      }, 800); // match CSS transition duration
+    }
+
+    function startGame() {
+      fadeAndRedirect('game.html');
+    }
+
+    function testButton() {
+      fadeAndRedirect('notes.html');
+    }
+
+    function showInstructions() {
+      alert("Hello! Welcome to RC (Debug build 0.1).\nUse W and S to move forward and backward, and A and D to move left and right.\nYou can also use the left arrow to turn left, and the right arrow to turn right.\nPress E to open the menu mid-game.\nYou can also use the up arrow to look up, and down arrow to look down.");
+    }
+
+    // mouse hover
+    buttons.forEach((btn, i) => {
+      btn.addEventListener('mouseenter', () => {
+        selectedIndex = i;
+        updateHover();
+      });
+    });
+
+    // keyboard navigation
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowUp') {
+        selectedIndex = (selectedIndex - 1 + buttons.length) % buttons.length;
+        updateHover();
+      } else if (e.key === 'ArrowDown') {
+        selectedIndex = (selectedIndex + 1) % buttons.length;
+        updateHover();
+      } else if (e.key === 'Enter') {
+        buttons[selectedIndex].click();
+      }
+    });
+
+    updateHover(); // initial highlight
+  </script>
+  </body>
+</html>

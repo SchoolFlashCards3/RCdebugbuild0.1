@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>JS Editor with Live 1/0 Coloring</title>
+    <style>
+  body {
+    margin: 0;
+    padding: 0;
+    background: #1e1e1e;
+    font-family: monospace;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #editor {
+    width: 90%;
+    height: 80%;
+    background: #2e2e2e;
+    color: white;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 16px;
+    overflow: auto;
+    white-space: pre-wrap;
+    outline: none;
+    border: none;
+    border-radius: 6px;
+  }
+  .green { color: #00ff00; }
+  .blue { color: #00bfff; }
+</style>
+  </head>
+  <body>
+
+    <div id="editor" contenteditable="true" spellcheck="false">
+      const map = [
+      [1,0,0,1],
+      [0,1,1,0]
+      ];
+    </div>
+
+    <script>
+const editor = document.getElementById('editor');
+
+function escapeHTML(text) {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function colorize(text) {
+  return escapeHTML(text)
+    .replace(/1/g, '<span class="green">1</span>')
+    .replace(/0/g, '<span class="blue">0</span>');
+}
+
+function saveSelection(containerEl) {
+  const sel = window.getSelection();
+  if (sel.rangeCount === 0) return null;
+  const range = sel.getRangeAt(0);
+  const preSelectionRange = range.cloneRange();
+  preSelectionRange.selectNodeContents(containerEl);
+  preSelectionRange.setEnd(range.startContainer, range.startOffset);
+  const start = preSelectionRange.toString().length;
+  return start;
+}
+
+function restoreSelection(containerEl, start) {
+  const charIndex = { index: 0 };
+  const range = document.createRange();
+  range.setStart(containerEl, 0);
+  range.collapse(true);
+
+  function traverse(node) {
+    if (!node) return false;
+    if (node.nodeType === 3) { // text node
+      const nextIndex = charIndex.index + node.length;
+      if (charIndex.index <= start && start <= nextIndex) {
+        range.setStart(node, start - charIndex.index);
+        range.collapse(true);
+        return true;
+      }
+      charIndex.index = nextIndex;
+    } else {
+      for (let i = 0; i < node.childNodes.length; i++) {
+        if (traverse(node.childNodes[i])) return true;
+      }
+    }
+    return false;
+  }
+
+  traverse(containerEl);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+function update() {
+  const pos = saveSelection(editor);
+  const text = editor.innerText;
+  editor.innerHTML = colorize(text);
+  if (pos !== null) restoreSelection(editor, pos);
+}
+
+// trigger coloring while typing
+editor.addEventListener('input', update);
+update();
+</script>
+
+  </body>
+</html>
